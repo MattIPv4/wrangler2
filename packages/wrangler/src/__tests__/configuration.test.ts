@@ -57,6 +57,7 @@ describe("normalizeAndValidateConfig()", () => {
       },
       usage_model: undefined,
       vars: {},
+      define: {},
       wasm_modules: undefined,
       data_blobs: undefined,
       workers_dev: undefined,
@@ -747,6 +748,10 @@ describe("normalizeAndValidateConfig()", () => {
           command: "COMMAND",
           cwd: "CWD",
           watch_dir: "WATCH_DIR",
+        },
+        define: {
+          DEF1: "DEFINE_1",
+          DEF2: "DEFINE_2",
         },
         vars: {
           VAR1: "VALUE_1",
@@ -2378,6 +2383,9 @@ describe("normalizeAndValidateConfig()", () => {
     });
 
     it("should warn for non-inherited fields that are missing in environments", () => {
+      const define: RawConfig["define"] = {
+        abc: "123",
+      };
       const vars: RawConfig["vars"] = {
         FOO: "foo",
       };
@@ -2388,6 +2396,7 @@ describe("normalizeAndValidateConfig()", () => {
       const r2_buckets: RawConfig["r2_buckets"] = [];
       const unsafe: RawConfig["unsafe"] = { bindings: [] };
       const rawConfig: RawConfig = {
+        define,
         vars,
         durable_objects,
         kv_namespaces,
@@ -2406,6 +2415,7 @@ describe("normalizeAndValidateConfig()", () => {
 
       expect(config).toEqual(
         expect.not.objectContaining({
+          define,
           vars,
           durable_objects,
           kv_namespaces,
@@ -2421,6 +2431,9 @@ describe("normalizeAndValidateConfig()", () => {
             - \\"vars\\" exists at the top level, but not on \\"env.ENV1\\".
               This is not what you probably want, since \\"vars\\" is not inherited by environments.
               Please add \\"vars\\" to \\"env.ENV1\\".
+            - \\"define\\" exists at the top level, but not on \\"env.ENV1\\".
+              This is not what you probably want, since \\"define\\" is not inherited by environments.
+              Please add \\"define\\" to \\"env.ENV1\\".
             - \\"durable_objects\\" exists at the top level, but not on \\"env.ENV1\\".
               This is not what you probably want, since \\"durable_objects\\" is not inherited by environments.
               Please add \\"durable_objects\\" to \\"env.ENV1\\".

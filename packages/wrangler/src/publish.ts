@@ -344,6 +344,7 @@ export default async function publish(props: Props): Promise<void> {
         tsconfig: props.tsconfig ?? config.tsconfig,
         minify,
         nodeCompat,
+        define: config.define,
       }
     );
 

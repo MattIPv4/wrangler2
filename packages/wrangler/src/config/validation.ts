@@ -926,6 +926,17 @@ function normalizeAndValidateEnvironment(
       validateVars(envName),
       {}
     ),
+    // Not inherited fields
+    define: notInheritable(
+      diagnostics,
+      topLevelEnv,
+      rawConfig,
+      rawEnv,
+      envName,
+      "define",
+      validateDefines(envName),
+      {}
+    ),
     durable_objects: notInheritable(
       diagnostics,
       topLevelEnv,
@@ -1123,6 +1134,44 @@ const validateRule: ValidatorFn = (diagnostics, field, value) => {
 
   return isValid;
 };
+
+const validateDefines =
+  (envName: string): ValidatorFn =>
+  (diagnostics, field, value, config) => {
+    let isValid = true;
+    const fieldPath =
+      config === undefined ? `${field}` : `env.${envName}.${field}`;
+    const configDefines = Object.keys(config?.define ?? {});
+    // If there are no top level vars then there is nothing to do here.
+    if (configDefines.length > 0) {
+      if (typeof value !== "object" || value === null) {
+        diagnostics.errors.push(
+          `The field "${fieldPath}" should be an object but got ${JSON.stringify(
+            value
+          )}.\n`
+        );
+        isValid = false;
+      } else {
+        for (const varName of configDefines) {
+          if (!(varName in value)) {
+            diagnostics.warnings.push(
+              `"define.${varName}" exists at the top level, but not on "${fieldPath}".\n` +
+                `This is not what you probably want, since "define" configuration is not inherited by environments.\n` +
+                `Please add "define.${varName}" to "env.${envName}".`
+            );
+          } else {
+            isString(
+              diagnostics,
+              fieldPath,
+              (value as Record<string, string>)[varName],
+              undefined
+            );
+          }
+        }
+      }
+    }
+    return isValid;
+  };
 
 const validateVars =
   (envName: string): ValidatorFn =>
@@ -1463,6 +1512,7 @@ const validateBindingsHaveUniqueNames = (
     text_blobs,
     unsafe,
     vars,
+    define,
     wasm_modules,
     data_blobs,
   }: Partial<Config>
@@ -1476,6 +1526,7 @@ const validateBindingsHaveUniqueNames = (
     "Text Blob": getBindingNames(text_blobs),
     Unsafe: getBindingNames(unsafe),
     "Environment Variable": getBindingNames(vars),
+    Definition: getBindingNames(define),
     "WASM Module": getBindingNames(wasm_modules),
     "Data Blob": getBindingNames(data_blobs),
   } as Record<string, string[]>;

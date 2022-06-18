@@ -1242,6 +1242,7 @@ function createCLIParser(argv: string[]) {
               minify={args.minify ?? config.minify}
               nodeCompat={nodeCompat}
               build={config.build || {}}
+              define={config.define}
               initialMode={args.local ? "local" : "remote"}
               jsxFactory={args["jsx-factory"] || config.jsx_factory}
               jsxFragment={args["jsx-fragment"] || config.jsx_fragment}
@@ -1683,6 +1684,7 @@ function createCLIParser(argv: string[]) {
           host={undefined}
           legacyEnv={isLegacyEnv(config)}
           build={config.build || {}}
+          define={config.define}
           minify={undefined}
           nodeCompat={config.node_compat}
           initialMode={args.local ? "local" : "remote"}

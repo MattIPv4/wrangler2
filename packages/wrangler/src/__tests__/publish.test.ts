@@ -3184,6 +3184,67 @@ addEventListener('fetch', event => {});`
     });
   });
 
+  describe("[define]", () => {
+    it("should be able to define values that will be substituted", async () => {
+      writeWranglerToml({
+        main: "index.js",
+        define: {
+          abc: "123",
+        },
+      });
+      fs.writeFileSync(
+        "index.js",
+        `
+        console.log(abc);
+      `
+      );
+      mockSubDomainRequest();
+      mockUploadWorkerRequest();
+      await runWrangler("build");
+      expect(fs.readFileSync("dist/index.js", "utf-8")).toMatchInlineSnapshot(`
+        "(() => {
+          // index.js
+          console.log(123);
+        })();
+        //# sourceMappingURL=index.js.map
+        "
+      `);
+    });
+
+    it("can be overriden in environments", async () => {
+      writeWranglerToml({
+        main: "index.js",
+        define: {
+          abc: "123",
+        },
+        env: {
+          staging: {
+            define: {
+              abc: "456",
+            },
+          },
+        },
+      });
+      fs.writeFileSync(
+        "index.js",
+        `
+        console.log(abc);
+      `
+      );
+      mockSubDomainRequest();
+      mockUploadWorkerRequest();
+      await runWrangler("build --env staging");
+      expect(fs.readFileSync("dist/index.js", "utf-8")).toMatchInlineSnapshot(`
+        "(() => {
+          // index.js
+          console.log(456);
+        })();
+        //# sourceMappingURL=index.js.map
+        "
+      `);
+    });
+  });
+
   describe("custom builds", () => {
     beforeEach(() => {
       // @ts-expect-error disable the mock we'd setup earlier
