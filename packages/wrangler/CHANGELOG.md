@@ -1,5 +1,52 @@
 # wrangler
 
+## 2.0.15
+
+### Patch Changes
+
+- [#1301](https://github.com/cloudflare/wrangler2/pull/1301) [`9074990`](https://github.com/cloudflare/wrangler2/commit/9074990ead8ce74862601dc9a7c827689e0e3328) Thanks [@mrbbot](https://github.com/mrbbot)! - Upgrade `miniflare` to [`2.5.1`](https://github.com/cloudflare/miniflare/releases/tag/v2.5.1)
+
+* [#1272](https://github.com/cloudflare/wrangler2/pull/1272) [`f7d362e`](https://github.com/cloudflare/wrangler2/commit/f7d362e31c83a1a32facfce771d2eb1e261e7b0b) Thanks [@JacobMGEvans](https://github.com/JacobMGEvans)! - feat: print bundle size during `publish` and `dev`
+
+  This logs the complete bundle size of the Worker (as well as when compressed) during `publish` and `dev`.
+
+  Via https://github.com/cloudflare/wrangler2/issues/405#issuecomment-1156762297)
+
+- [#1287](https://github.com/cloudflare/wrangler2/pull/1287) [`2072e27`](https://github.com/cloudflare/wrangler2/commit/2072e278479bf66b255eb2858dea83bf0608530c) Thanks [@f5io](https://github.com/f5io)! - fix: kv:key put/get binary file
+
+  As raised in https://github.com/cloudflare/wrangler2/issues/1254, it was discovered that binary uploads were being mangled by wrangler 2, whereas they worked in wrangler 1. This is because they were read into a string by providing an explicit encoding of `utf-8`. This fix reads provided files into a node `Buffer` that is then passed directly to the request.
+
+  Subsequently https://github.com/cloudflare/wrangler2/issues/1273 was raised in relation to a similar issue with gets from wrangler 2. This was happening due to the downloaded file being converted to `utf-8` encoding as it was pushed through `console.log`. By leveraging `process.stdout.write` we can push the fetched `ArrayBuffer` to std out directly without inferring any specific encoding value.
+
+* [#1289](https://github.com/cloudflare/wrangler2/pull/1289) [`0d6098c`](https://github.com/cloudflare/wrangler2/commit/0d6098ca9b28c64be54ced160933894eeed77983) Thanks [@threepointone](https://github.com/threepointone)! - feat: entry point is not mandatory if `--assets` is passed
+
+  Since we use a facade worker with `--assets`, an entry point is not strictly necessary. This makes a common usecase of "deploy a bunch of static assets" extremely easy to start, as a one liner `npx wrangler dev --assets path/to/folder` (and same with `publish`).
+
+- [#1299](https://github.com/cloudflare/wrangler2/pull/1299) [`0fd0c30`](https://github.com/cloudflare/wrangler2/commit/0fd0c301e538ab1f1dbabbf7cbe203bc03ccc6db) Thanks [@threepointone](https://github.com/threepointone)! - polish: include a copy-pastable message when trying to publish without a compatibility date
+
+* [#1269](https://github.com/cloudflare/wrangler2/pull/1269) [`fea87cf`](https://github.com/cloudflare/wrangler2/commit/fea87cf142030c6bbd2647f8aba87479763bfffe) Thanks [@petebacondarwin](https://github.com/petebacondarwin)! - fix: do not consider ancestor files when initializing a project with a specified name
+
+  When initializing a new project (via `wrangler init`) we attempt to reuse files in the current
+  directory, or in an ancestor directory. In particular we look up the directory tree for
+  package.json and tsconfig.json and use those instead of creating new ones.
+
+  Now we only do this if you do not specify a name for the new Worker. If you do specify a name,
+  we now only consider files in the directory where the Worker will be initialized.
+
+  Fixes #859
+
+- [#1275](https://github.com/cloudflare/wrangler2/pull/1275) [`35482da`](https://github.com/cloudflare/wrangler2/commit/35482da2570066cd4764f3f47bfa7a2264e578a6) Thanks [@alankemp](https://github.com/alankemp)! - Add environment variable WRANGLER_LOG to set log level
+
+* [#1294](https://github.com/cloudflare/wrangler2/pull/1294) [`f6836b0`](https://github.com/cloudflare/wrangler2/commit/f6836b001b86d1d79cd86c44dcb9376ee29e15bc) Thanks [@threepointone](https://github.com/threepointone)! - fix: serve `--assets` in dev + local mode
+
+  A quick bugfix to make sure --assets/config.assets gets served correctly in `dev --local`.
+
+- [#1237](https://github.com/cloudflare/wrangler2/pull/1237) [`e1b8ac4`](https://github.com/cloudflare/wrangler2/commit/e1b8ac410f23bc5923429b8c77b63a93b39b918e) Thanks [@threepointone](https://github.com/threepointone)! - feat: `--assets` / `config.assets` to serve a folder of static assets
+
+  This adds support for defining `assets` in `wrangler.toml`. You can configure it with a string path, or a `{bucket, include, exclude}` object (much like `[site]`). This also renames the `--experimental-public` arg as `--assets`.
+
+  Via https://github.com/cloudflare/wrangler2/issues/1162
+
 ## 2.0.14
 
 ### Patch Changes
