@@ -5661,6 +5661,21 @@ addEventListener('fetch', event => {});`
       `);
     });
   });
+
+  describe.only("--do-not-build", () => {
+    it("should not transform the source code before publishing it", async () => {
+      writeWranglerToml();
+      const scriptContent = `
+      import X from '@cloudflare/no-such-package'; // let's add an import that doesn't exist
+      const xyz = 123; // a statement that would otherwise be compiled out
+    `;
+      fs.writeFileSync("index.js", scriptContent);
+      await runWrangler(
+        "publish index.js --do-not-build --dry-run --outdir dist"
+      );
+      expect(fs.readFileSync("dist/index.js", "utf-8")).toMatch(scriptContent);
+    });
+  });
 });
 
 /** Write mock assets to the file system so they can be uploaded. */

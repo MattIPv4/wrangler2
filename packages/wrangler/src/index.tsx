@@ -1306,6 +1306,11 @@ function createCLIParser(argv: string[]) {
           type: "string",
           requiresArg: true,
         })
+        .option("do-not-build", {
+          describe: "Skip internal build steps and directly publish script",
+          type: "boolean",
+          default: false,
+        })
         .option("outdir", {
           describe: "Output directory for the bundled worker",
           type: "string",
@@ -1476,6 +1481,7 @@ function createCLIParser(argv: string[]) {
         isWorkersSite: Boolean(args.site || config.site),
         outDir: args.outdir,
         dryRun: args.dryRun,
+        doNotBuild: args["do-not-build"],
       });
     }
   );

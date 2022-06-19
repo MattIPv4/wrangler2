@@ -46,6 +46,7 @@ type Props = {
   nodeCompat: boolean | undefined;
   outDir: string | undefined;
   dryRun: boolean | undefined;
+  doNotBuild: boolean | undefined;
 };
 
 type RouteObject = ZoneIdRoute | ZoneNameRoute | CustomDomainRoute;
@@ -332,20 +333,39 @@ export default async function publish(props: Props): Promise<void> {
     );
   }
   try {
-    const { modules, resolvedEntryPointPath, bundleType } = await bundleWorker(
-      props.entry,
-      typeof destination === "string" ? destination : destination.path,
-      {
-        serveAssetsFromWorker:
-          !props.isWorkersSite && Boolean(props.assetPaths),
-        jsxFactory,
-        jsxFragment,
-        rules: props.rules,
-        tsconfig: props.tsconfig ?? config.tsconfig,
-        minify,
-        nodeCompat,
-      }
-    );
+    if (props.doNotBuild) {
+      // if we're not building, let's just copy the entry to the destination directory
+      const destinationDir =
+        typeof destination === "string" ? destination : destination.path;
+      mkdirSync(destinationDir, { recursive: true });
+      writeFileSync(
+        path.join(destinationDir, path.basename(props.entry.file)),
+        readFileSync(props.entry.file, "utf-8")
+      );
+    }
+
+    const { modules, resolvedEntryPointPath, bundleType } = props.doNotBuild
+      ? // we can skip the whole bundling step and mock a bundle here
+        ({
+          modules: [],
+          resolvedEntryPointPath: props.entry.file,
+          bundleType: props.entry.format === "modules" ? "esm" : "commonjs",
+          stop: undefined,
+        } as Awaited<ReturnType<typeof bundleWorker>>)
+      : await bundleWorker(
+          props.entry,
+          typeof destination === "string" ? destination : destination.path,
+          {
+            serveAssetsFromWorker:
+              !props.isWorkersSite && Boolean(props.assetPaths),
+            jsxFactory,
+            jsxFragment,
+            rules: props.rules,
+            tsconfig: props.tsconfig ?? config.tsconfig,
+            minify,
+            nodeCompat,
+          }
+        );
 
     const content = readFileSync(resolvedEntryPointPath, {
       encoding: "utf-8",
